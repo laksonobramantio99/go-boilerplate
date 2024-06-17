@@ -18,7 +18,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func main() {
+func init() {
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
@@ -30,7 +30,9 @@ func main() {
 	if err != nil {
 		log.Fatal().Msgf("config.LoadConfig: %v", err)
 	}
+}
 
+func main() {
 	// Run API server
 	run()
 }
@@ -55,7 +57,7 @@ func run() {
 			log.Fatal().Msgf("listen: %s", err)
 		}
 	}()
-	log.Info().Msgf("[API Server] started on port :%d", config.Config.Port)
+	log.Info().Msgf("[API Server] Started on port :%d", config.Config.Port)
 
 	gracefulShutdown(srv)
 }
@@ -64,14 +66,14 @@ func gracefulShutdown(srv *http.Server) {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Info().Msg("Shutting down server...")
+	log.Info().Msg("[API Server] Shutting down server...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal().Msgf("Server forced to shutdown: %v", err)
+		log.Fatal().Msgf("[API Server] Server forced to shutdown: %v", err)
 	}
 
-	log.Info().Msg("Server exiting")
+	log.Info().Msg("[API Server] Server exiting")
 }
