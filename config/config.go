@@ -5,6 +5,7 @@ import (
 )
 
 type Configuration struct {
+	Env      string
 	Port     int
 	Database DatabaseConfig
 	Redis    RedisConfig
@@ -33,8 +34,8 @@ type KafkaConfig struct {
 // global config variable
 var Config Configuration
 
-func LoadConfig(env string) (err error) {
-	viper.SetConfigName("config_" + env)
+func InitConfig(env string) (err error) {
+	viper.SetConfigName("config." + env)
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("./config")
 
@@ -46,5 +47,6 @@ func LoadConfig(env string) (err error) {
 		return err
 	}
 
+	Config.Env = env
 	return nil
 }
