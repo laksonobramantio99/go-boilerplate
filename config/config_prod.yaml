@@ -1,0 +1,17 @@
+port: 9999
+database:
+  user: devuser
+  password: devpass
+  dbname: devdb
+  host: localhost
+  port: 5432
+
+redis:
+  addr: localhost:6379
+  password: ""
+  db: 0
+
+kafka:
+  brokers:
+    - localhost:9092
+  topic: dev_topic
