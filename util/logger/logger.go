@@ -3,6 +3,7 @@ package logger
 import (
 	"context"
 	"fmt"
+	"go-boilerplate/model/constants"
 
 	"github.com/rs/zerolog/log"
 )
@@ -10,10 +11,8 @@ import (
 // Please use this logger library to log in handler, usecase, repo
 // and client layers, so we can get the correlation_id in the log
 
-const CorrelationIDHeader = "X-Correlation-ID"
-
 func parseMsg(ctx context.Context, msg string) string {
-	return msg + " - " + fmt.Sprint(ctx.Value(CorrelationIDHeader))
+	return msg + " - " + fmt.Sprint(ctx.Value(constants.CorrelationIDHeader))
 }
 
 func Info(ctx context.Context, msg string) {

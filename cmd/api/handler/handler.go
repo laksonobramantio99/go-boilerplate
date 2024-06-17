@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"go-boilerplate/logger"
+	"go-boilerplate/util/logger"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
