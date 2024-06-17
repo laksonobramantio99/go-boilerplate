@@ -11,3 +11,7 @@ func Ping(c *gin.Context) {
 		"message": "pong",
 	})
 }
+
+func Panic(c *gin.Context) {
+	panic("panic example")
+}

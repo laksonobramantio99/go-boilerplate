@@ -8,4 +8,5 @@ import (
 
 func SetupRoutes(r *gin.Engine) {
 	r.GET("/ping", handler.Ping)
+	r.GET("/panic", handler.Panic)
 }

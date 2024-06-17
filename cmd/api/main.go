@@ -1,26 +1,40 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"go-boilerplate/cmd/api/router"
 	"go-boilerplate/config"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
 func main() {
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
 	env := flag.String("env", "dev", "Environment to run the application in (dev or prod)")
 	flag.Parse()
 
-	// init config
+	// Init config
 	err := config.InitConfig(*env)
 	if err != nil {
 		log.Fatal().Msgf("config.LoadConfig: %v", err)
 	}
 
-	// init gin handler
+	// Run API server
+	run()
+}
+
+func run() {
 	switch config.Config.Env {
 	case "prod":
 		gin.SetMode(gin.ReleaseMode)
@@ -29,6 +43,33 @@ func main() {
 	r := gin.Default()
 	router.SetupRoutes(r)
 
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%d", config.Config.Port),
+		Handler: r,
+	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal().Msgf("listen: %s", err)
+		}
+	}()
 	log.Info().Msgf("[API Server] started on port :%d", config.Config.Port)
-	r.Run(fmt.Sprintf(":%d", config.Config.Port))
+
+	gracefulShutdown(srv)
+}
+
+func gracefulShutdown(srv *http.Server) {
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Info().Msg("Shutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatal().Msgf("Server forced to shutdown: %v", err)
+	}
+
+	log.Info().Msg("Server exiting")
 }
