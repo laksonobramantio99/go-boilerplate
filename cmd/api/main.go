@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"go-boilerplate/cmd/api/middleware"
 	"go-boilerplate/cmd/api/router"
 	"go-boilerplate/config"
 	"net/http"
@@ -41,6 +42,7 @@ func run() {
 	}
 
 	r := gin.Default()
+	r.Use(middleware.CorrelationIDMiddleware())
 	router.SetupRoutes(r)
 
 	srv := &http.Server{
