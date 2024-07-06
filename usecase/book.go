@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go-boilerplate/client/redis"
 	"go-boilerplate/model"
 	"go-boilerplate/repo"
-	"go-boilerplate/util/redis"
 	"time"
 )
 
