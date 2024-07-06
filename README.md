@@ -12,3 +12,4 @@ Golang boilerplate for backend service.
 - [x] use postgresql DB
 - [x] use redis
 - [x] hierarchy api - handler - usecase - repo
+- [x] use context

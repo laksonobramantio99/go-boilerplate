@@ -8,6 +8,7 @@ import (
 	"go-boilerplate/client/redis"
 	"go-boilerplate/model"
 	"go-boilerplate/repo"
+	"go-boilerplate/util/logger"
 	"time"
 )
 
@@ -48,6 +49,7 @@ func (uc *usecase) GetBookByID(ctx context.Context, id uint) (*model.Book, error
 
 	book, err := uc.repo.FindByID(ctx, id)
 	if err != nil {
+		logger.Errorf(ctx, "uc.repo.FindByID: %v", err)
 		return nil, err
 	}
 
