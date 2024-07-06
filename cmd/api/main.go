@@ -11,6 +11,7 @@ import (
 	"go-boilerplate/repo"
 	"go-boilerplate/usecase"
 	"go-boilerplate/util/postgres"
+	"go-boilerplate/util/redis"
 	"net/http"
 	"os"
 	"os/signal"
@@ -40,6 +41,12 @@ func main() {
 	db, err := postgres.InitPostgres()
 	if err != nil {
 		log.Fatal().Msgf("postgres.InitPostgres: %v", err)
+	}
+
+	// Init Redis
+	_, err = redis.InitRedisClient()
+	if err != nil {
+		log.Fatal().Msgf("redis.InitRedisClient: %v", err)
 	}
 
 	// Init repo

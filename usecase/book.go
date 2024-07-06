@@ -1,9 +1,14 @@
 package usecase
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"go-boilerplate/model"
 	"go-boilerplate/repo"
+	"go-boilerplate/util/redis"
+	"time"
 )
 
 type BookUc interface {
@@ -18,7 +23,9 @@ type usecase struct {
 }
 
 func NewUsecase(repo repo.BookRepo) BookUc {
-	return &usecase{repo}
+	return &usecase{
+		repo: repo,
+	}
 }
 
 func (uc *usecase) CreateBook(book *model.Book) (*model.Book, error) {
@@ -30,7 +37,27 @@ func (uc *usecase) CreateBook(book *model.Book) (*model.Book, error) {
 }
 
 func (uc *usecase) GetBookByID(id uint) (*model.Book, error) {
-	return uc.repo.FindByID(id)
+	cacheKey := "book:" + fmt.Sprint(id)
+	cachedBook, err := redis.RedisClient.Get(context.Background(), cacheKey).Result()
+	if err == nil {
+		var book model.Book
+		if err := json.Unmarshal([]byte(cachedBook), &book); err == nil {
+			return &book, nil
+		}
+	}
+
+	book, err := uc.repo.FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	// set to redis
+	bookJson, err := json.Marshal(book)
+	if err == nil {
+		go redis.RedisClient.Set(context.TODO(), cacheKey, bookJson, 1*time.Hour) // Adjust expiration as needed
+	}
+
+	return book, nil
 }
 
 func (uc *usecase) UpdateBook(book *model.Book) (*model.Book, error) {
@@ -47,9 +74,22 @@ func (uc *usecase) UpdateBook(book *model.Book) (*model.Book, error) {
 		return nil, err
 	}
 
+	// delete from redis
+	cacheKey := "book:" + fmt.Sprint(book.ID)
+	redis.RedisClient.Del(context.TODO(), cacheKey)
+
 	return book, nil
 }
 
 func (uc *usecase) DeleteBook(id uint) error {
-	return uc.repo.Delete(id)
+	err := uc.repo.Delete(id)
+	if err != nil {
+		return err
+	}
+
+	// delete from redis
+	cacheKey := "book:" + fmt.Sprint(id)
+	redis.RedisClient.Del(context.TODO(), cacheKey)
+
+	return nil
 }
