@@ -4,14 +4,12 @@ import (
 	"errors"
 	"go-boilerplate/model"
 	"go-boilerplate/repo"
-
-	"time"
 )
 
 type BookUc interface {
-	CreateBook(title, author, genre string, publishedDate time.Time) (*model.Book, error)
-	GetBook(id uint) (*model.Book, error)
-	UpdateBook(id uint, title, author, genre string, publishedDate time.Time) (*model.Book, error)
+	CreateBook(book *model.Book) (*model.Book, error)
+	GetBookByID(id uint) (*model.Book, error)
+	UpdateBook(book *model.Book) (*model.Book, error)
 	DeleteBook(id uint) error
 }
 
@@ -23,41 +21,32 @@ func NewUsecase(repo repo.BookRepo) BookUc {
 	return &usecase{repo}
 }
 
-func (uc *usecase) CreateBook(title, author, genre string, publishedDate time.Time) (*model.Book, error) {
-	book := &model.Book{
-		Title:         title,
-		Author:        author,
-		Genre:         genre,
-		PublishedDate: publishedDate,
-	}
+func (uc *usecase) CreateBook(book *model.Book) (*model.Book, error) {
 	if err := uc.repo.Create(book); err != nil {
 		return nil, err
 	}
+
 	return book, nil
 }
 
-func (uc *usecase) GetBook(id uint) (*model.Book, error) {
+func (uc *usecase) GetBookByID(id uint) (*model.Book, error) {
 	return uc.repo.FindByID(id)
 }
 
-func (uc *usecase) UpdateBook(id uint, title, author, genre string, publishedDate time.Time) (*model.Book, error) {
-	book, err := uc.repo.FindByID(id)
+func (uc *usecase) UpdateBook(book *model.Book) (*model.Book, error) {
+	findBook, err := uc.repo.FindByID(book.ID)
 	if err != nil {
 		return nil, err
 	}
-	if book == nil {
+
+	if findBook == nil {
 		return nil, errors.New("book not found")
 	}
-
-	book.Title = title
-	book.Author = author
-	book.Genre = genre
-	book.PublishedDate = publishedDate
-	book.UpdatedAt = time.Now()
 
 	if err := uc.repo.Update(book); err != nil {
 		return nil, err
 	}
+
 	return book, nil
 }
 
