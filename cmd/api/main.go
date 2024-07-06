@@ -37,27 +37,8 @@ func main() {
 		log.Fatal().Msgf("config.LoadConfig: %v", err)
 	}
 
-	// Init postgres DB
-	db, err := postgres.InitPostgres()
-	if err != nil {
-		log.Fatal().Msgf("postgres.InitPostgres: %v", err)
-	}
-
-	// Init Redis
-	_, err = redis.InitRedisClient()
-	if err != nil {
-		log.Fatal().Msgf("redis.InitRedisClient: %v", err)
-	}
-
-	// Init repo
-	bookRepo := repo.NewBookRepo(db.Master, db.Slave)
-
-	// Init usecase
-	bookUc := usecase.NewUsecase(bookRepo)
-
-	// Init handler
-	bookHandler := handler.NewBookHandler(bookUc)
-	mainHandler := handler.NewHandler(bookHandler)
+	// Init repo, usecase, handler, client and others dependency
+	mainHandler := initDependency()
 
 	// Run HTTP server
 	switch config.Config.Env {
@@ -82,6 +63,32 @@ func main() {
 	log.Info().Msgf("[API Server] Started on port :%d", config.Config.Port)
 
 	gracefulShutdown(srv)
+}
+
+func initDependency() *handler.MainHandler {
+	// Init postgres DB
+	db, err := postgres.InitPostgres()
+	if err != nil {
+		log.Fatal().Msgf("postgres.InitPostgres: %v", err)
+	}
+
+	// Init Redis
+	_, err = redis.InitRedisClient()
+	if err != nil {
+		log.Fatal().Msgf("redis.InitRedisClient: %v", err)
+	}
+
+	// Init repo
+	bookRepo := repo.NewBookRepo(postgres.DB.Master, db.Slave)
+
+	// Init usecase
+	bookUc := usecase.NewUsecase(bookRepo)
+
+	// Init handler
+	bookHandler := handler.NewBookHandler(bookUc)
+
+	mainHandler := handler.NewMainHandler(bookHandler)
+	return mainHandler
 }
 
 func gracefulShutdown(srv *http.Server) {
