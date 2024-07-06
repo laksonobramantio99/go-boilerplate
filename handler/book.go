@@ -29,13 +29,15 @@ func (h *BookHandler) Mount(c *gin.RouterGroup) {
 }
 
 func (h *BookHandler) CreateBook(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	var b model.Book
 	if err := c.ShouldBindJSON(&b); err != nil {
 		c.JSON(http.StatusBadRequest, resp.Error("err read req body: "+err.Error()))
 		return
 	}
 
-	res, err := h.uc.CreateBook(&b)
+	res, err := h.uc.CreateBook(ctx, &b)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, resp.Error("err create book: "+err.Error()))
 		return
@@ -45,13 +47,15 @@ func (h *BookHandler) CreateBook(c *gin.Context) {
 }
 
 func (h *BookHandler) GetBook(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, resp.Error("invalid id: "+err.Error()))
 		return
 	}
 
-	book, err := h.uc.GetBookByID(uint(id))
+	book, err := h.uc.GetBookByID(ctx, uint(id))
 	if err != nil {
 		c.JSON(http.StatusNotFound, resp.Error("err get book: "+err.Error()))
 		return
@@ -61,13 +65,15 @@ func (h *BookHandler) GetBook(c *gin.Context) {
 }
 
 func (h *BookHandler) UpdateBook(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	var b model.Book
 	if err := c.ShouldBindJSON(&b); err != nil {
 		c.JSON(http.StatusBadRequest, resp.Error("err read req body: "+err.Error()))
 		return
 	}
 
-	res, err := h.uc.UpdateBook(&b)
+	res, err := h.uc.UpdateBook(ctx, &b)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, resp.Error("err update book: "+err.Error()))
 		return
@@ -77,13 +83,15 @@ func (h *BookHandler) UpdateBook(c *gin.Context) {
 }
 
 func (h *BookHandler) DeleteBook(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, resp.Error("invalid id: "+err.Error()))
 		return
 	}
 
-	if err := h.uc.DeleteBook(uint(id)); err != nil {
+	if err := h.uc.DeleteBook(ctx, uint(id)); err != nil {
 		c.JSON(http.StatusInternalServerError, resp.Error("err delete book: "+err.Error()))
 		return
 	}

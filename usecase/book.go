@@ -12,10 +12,10 @@ import (
 )
 
 type BookUc interface {
-	CreateBook(book *model.Book) (*model.Book, error)
-	GetBookByID(id uint) (*model.Book, error)
-	UpdateBook(book *model.Book) (*model.Book, error)
-	DeleteBook(id uint) error
+	CreateBook(ctx context.Context, book *model.Book) (*model.Book, error)
+	GetBookByID(ctx context.Context, id uint) (*model.Book, error)
+	UpdateBook(ctx context.Context, book *model.Book) (*model.Book, error)
+	DeleteBook(ctx context.Context, id uint) error
 }
 
 type usecase struct {
@@ -28,15 +28,15 @@ func NewUsecase(repo repo.BookRepo) BookUc {
 	}
 }
 
-func (uc *usecase) CreateBook(book *model.Book) (*model.Book, error) {
-	if err := uc.repo.Create(book); err != nil {
+func (uc *usecase) CreateBook(ctx context.Context, book *model.Book) (*model.Book, error) {
+	if err := uc.repo.Create(ctx, book); err != nil {
 		return nil, err
 	}
 
 	return book, nil
 }
 
-func (uc *usecase) GetBookByID(id uint) (*model.Book, error) {
+func (uc *usecase) GetBookByID(ctx context.Context, id uint) (*model.Book, error) {
 	cacheKey := "book:" + fmt.Sprint(id)
 	cachedBook, err := redis.RedisClient.Get(context.Background(), cacheKey).Result()
 	if err == nil {
@@ -46,7 +46,7 @@ func (uc *usecase) GetBookByID(id uint) (*model.Book, error) {
 		}
 	}
 
-	book, err := uc.repo.FindByID(id)
+	book, err := uc.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -60,8 +60,8 @@ func (uc *usecase) GetBookByID(id uint) (*model.Book, error) {
 	return book, nil
 }
 
-func (uc *usecase) UpdateBook(book *model.Book) (*model.Book, error) {
-	findBook, err := uc.repo.FindByID(book.ID)
+func (uc *usecase) UpdateBook(ctx context.Context, book *model.Book) (*model.Book, error) {
+	findBook, err := uc.repo.FindByID(ctx, book.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (uc *usecase) UpdateBook(book *model.Book) (*model.Book, error) {
 		return nil, errors.New("book not found")
 	}
 
-	if err := uc.repo.Update(book); err != nil {
+	if err := uc.repo.Update(ctx, book); err != nil {
 		return nil, err
 	}
 
@@ -81,8 +81,8 @@ func (uc *usecase) UpdateBook(book *model.Book) (*model.Book, error) {
 	return book, nil
 }
 
-func (uc *usecase) DeleteBook(id uint) error {
-	err := uc.repo.Delete(id)
+func (uc *usecase) DeleteBook(ctx context.Context, id uint) error {
+	err := uc.repo.Delete(ctx, id)
 	if err != nil {
 		return err
 	}
