@@ -9,6 +9,6 @@ Golang boilerplate for backend service.
 - [x] use yaml config
 - [ ] with separate api, consumer and cron binaries
 - [ ] use kafka as the consumer
-- [ ] use postgresql DB
-- [ ] use redis
-- [ ] hierarchy api - handler - usecase - repo
+- [x] use postgresql DB
+- [x] use redis
+- [x] hierarchy api - handler - usecase - repo

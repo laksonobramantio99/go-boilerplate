@@ -1,5 +1,5 @@
 package constants
 
 const (
-	CorrelationIDHeader = "X-Correlation-ID"
+	CORRELATION_ID = "X-Correlation-ID"
 )

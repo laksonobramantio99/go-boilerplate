@@ -12,7 +12,7 @@ import (
 // and client layers, so we can get the correlation_id in the log
 
 func parseMsg(ctx context.Context, msg string) string {
-	return msg + " - " + fmt.Sprint(ctx.Value(constants.CorrelationIDHeader))
+	return msg + " - " + fmt.Sprint(ctx.Value(constants.CORRELATION_ID))
 }
 
 func Info(ctx context.Context, msg string) {
