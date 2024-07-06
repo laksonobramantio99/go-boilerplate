@@ -5,34 +5,39 @@ import (
 )
 
 type Configuration struct {
-	Env      string
-	Port     int
-	Database DatabaseConfig
-	Redis    RedisConfig
-	Kafka    KafkaConfig
+	Env      string         `mapstructure:"env"`
+	Port     int            `mapstructure:"port"`
+	Database DatabaseConfig `mapstructure:"database"`
+	Redis    RedisConfig    `mapstructure:"redis"`
+	Kafka    KafkaConfig    `mapstructure:"kafka"`
 }
 
 type DatabaseConfig struct {
-	User     string
-	Password string
-	DBName   string
-	Host     string
-	Port     int
+	Master DBConfig `mapstructure:"master"`
+	Slave  DBConfig `mapstructure:"slave"`
+}
+
+type DBConfig struct {
+	Username string `mapstructure:"username"`
+	Password string `mapstructure:"password"`
+	DBName   string `mapstructure:"dbName"`
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
 }
 
 type RedisConfig struct {
-	Addr     string
-	Password string
-	DB       int
+	Addr     string `mapstructure:"addr"`
+	Password string `mapstructure:"password"`
+	DB       int    `mapstructure:"db"`
 }
 
 type KafkaConfig struct {
-	Brokers []string
-	Topic   string
+	Brokers []string `mapstructure:"brokers"`
+	Topic   string   `mapstructure:"topic"`
 }
 
 // global config variable
-var Config Configuration
+var Config *Configuration
 
 func InitConfig(env string) (err error) {
 	viper.SetConfigName("config." + env)

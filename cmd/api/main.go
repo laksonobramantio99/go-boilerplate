@@ -7,6 +7,10 @@ import (
 	"go-boilerplate/cmd/api/middleware"
 	"go-boilerplate/cmd/api/router"
 	"go-boilerplate/config"
+	"go-boilerplate/handler"
+	"go-boilerplate/repo"
+	"go-boilerplate/usecase"
+	"go-boilerplate/util/postgres"
 	"net/http"
 	"os"
 	"os/signal"
@@ -18,26 +22,37 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func init() {
-	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-
+func main() {
 	env := flag.String("env", "dev", "Environment to run the application in (dev or prod)")
 	flag.Parse()
+
+	// Init log
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
 	// Init config
 	err := config.InitConfig(*env)
 	if err != nil {
 		log.Fatal().Msgf("config.LoadConfig: %v", err)
 	}
-}
 
-func main() {
-	// Run API server
-	run()
-}
+	// Init postgres DB
+	db, err := postgres.InitPostgres()
+	if err != nil {
+		log.Fatal().Msgf("postgres.InitPostgres: %v", err)
+	}
 
-func run() {
+	// Init repo
+	bookRepo := repo.NewBookRepo(db.Master, db.Slave)
+
+	// Init usecase
+	bookUc := usecase.NewUsecase(bookRepo)
+
+	// Init handler
+	bookHandler := handler.NewBookHandler(bookUc)
+	mainHandler := handler.NewHandler(bookHandler)
+
+	// Run HTTP server
 	switch config.Config.Env {
 	case "prod":
 		gin.SetMode(gin.ReleaseMode)
@@ -45,7 +60,7 @@ func run() {
 
 	r := gin.Default()
 	r.Use(middleware.CorrelationIDMiddleware())
-	router.SetupRoutes(r)
+	router.SetupRoutes(r, mainHandler)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", config.Config.Port),
