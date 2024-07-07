@@ -39,7 +39,7 @@ func (uc *usecase) CreateBook(ctx context.Context, book *model.Book) (*model.Boo
 
 func (uc *usecase) GetBookByID(ctx context.Context, id uint) (*model.Book, error) {
 	cacheKey := "book:" + fmt.Sprint(id)
-	cachedBook, err := redis.RedisClient.Get(context.Background(), cacheKey).Result()
+	cachedBook, err := redis.RedisClient.Get(ctx, cacheKey).Result()
 	if err == nil {
 		var book model.Book
 		if err := json.Unmarshal([]byte(cachedBook), &book); err == nil {
@@ -56,7 +56,7 @@ func (uc *usecase) GetBookByID(ctx context.Context, id uint) (*model.Book, error
 	// set to redis
 	bookJson, err := json.Marshal(book)
 	if err == nil {
-		go redis.RedisClient.Set(context.TODO(), cacheKey, bookJson, 1*time.Hour) // Adjust expiration as needed
+		go redis.RedisClient.Set(ctx, cacheKey, bookJson, 1*time.Hour) // Adjust expiration as needed
 	}
 
 	return book, nil
@@ -78,7 +78,7 @@ func (uc *usecase) UpdateBook(ctx context.Context, book *model.Book) (*model.Boo
 
 	// delete from redis
 	cacheKey := "book:" + fmt.Sprint(book.ID)
-	redis.RedisClient.Del(context.TODO(), cacheKey)
+	redis.RedisClient.Del(ctx, cacheKey)
 
 	return book, nil
 }
@@ -91,7 +91,7 @@ func (uc *usecase) DeleteBook(ctx context.Context, id uint) error {
 
 	// delete from redis
 	cacheKey := "book:" + fmt.Sprint(id)
-	redis.RedisClient.Del(context.TODO(), cacheKey)
+	redis.RedisClient.Del(ctx, cacheKey)
 
 	return nil
 }
